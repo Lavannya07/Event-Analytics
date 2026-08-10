@@ -47,7 +47,7 @@ pip install uvicorn fastapi boto3
 uvicorn main:app --reload
 
 # If FastAPI server already running then kill it
-lsof -i: [Portnumber]  # Enter the port number in the URL
+lsof -i:[Portnumber]  # Enter the port number in the URL
 kill -9 [PID]  # Enter the PID value returned
  
 # Configure AWS environment variables
