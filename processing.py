@@ -3,8 +3,9 @@ from collections import Counter
 from datetime import datetime
 
 
-def load_events(data):
-    return json.load(open("sample_data.json"))
+def load_events():
+    with open("data.json", "r") as file:
+        return json.load(file)
 
 
 def count_events(events):
@@ -12,109 +13,52 @@ def count_events(events):
 
 
 def unique_devices(events):
-    device_ids = []
-    for e in events:
-        device_ids.append(e["device_id"])
+    device_ids = [e.get("device_id") for e in events if e.get("device_id")]
     return len(set(device_ids))
 
-
+#extra
 def unique_publishers(events):
-    publishers = []
-    for e in events:
-        publishers.append(e["publisher"])
+    publishers = [e.get("publisher") for e in events if e.get("publisher")]
     return list(set(publishers))
 
+#extra
+def top_cities(events, n):
+    cities = [e.get("city") for e in events if e.get("city")]
+    return Counter(cities).most_common(n)
 
-def top_countries(events, n=10):
-    countries = []
-    for e in events:
-        countries.append(e["country"])
+
+def top_publishers(events, n):
+    publishers = [e.get("publisher") for e in events if e.get("publisher")]
+    return Counter(publishers).most_common(n)
+
+
+def top_campaigns(events, n):
+    campaigns = [e.get("campaign_id") for e in events if e.get("campaign_id")]
+    return Counter(campaigns).most_common(n)
+
+#extra
+def events_by_country(events, country_code):
+    return sum(1 for e in events if e.get("country") == country_code)
+
+
+def top_countries(events, n):
+    countries = [e.get("country") for e in events if e.get("country")]
     counter = Counter(countries)
     return counter.most_common(n)
-
-
-def top_cities(events, n=10):
-    cities = []
-    for e in events:
-        cities.append(e["city"])
-    counter = Counter(cities)
-    return counter.most_common(n)
-
-
-def top_publishers(events, n=10):
-    publishers = []
-    for e in events:
-        publishers.append(e["publisher"])
-    counter = Counter(publishers)
-    return counter.most_common(n)
-
-
-def top_campaigns(events, n=10):
-    campaigns = []
-    for e in events:
-        campaigns.append(e["campaign_id"])
-    counter = Counter(campaigns)
-    return counter.most_common(n)
-
-
-def events_by_country(events, country_code):
-    count = 0
-    for e in events:
-        if e["country"] == country_code:
-            count += 1
-    return count
 
 
 def hourly_distribution(events):
     hours = {}
     for e in events:
-        ts = datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00"))
-        hour = ts.hour
-        if hour not in hours:
-            hours[hour] = 0
-        hours[hour] += 1
+        raw_ts = e.get("timestamp")
+        if raw_ts and isinstance(raw_ts, str):
+            try:
+                ts = datetime.fromisoformat(raw_ts.replace("Z", "+00:00"))
+                hour = ts.hour
+                hours[hour] = hours.get(hour, 0) + 1
+            except ValueError:
+                continue
     return hours
-
-
-def os_split(events):
-    os_list = []
-    for e in events:
-        os_list.append(e["os"])
-    counter = Counter(os_list)
-    total = len(os_list)
-
-    result = {}
-    for os_name, count in counter.items():
-        percent = round(count / total * 100, 2)
-        result[os_name] = {"count": count, "percent": percent}
-    return result
-
-
-def average_bid_price(events):
-    prices = []
-    for e in events:
-        if e.get("bid_price") is not None:
-            prices.append(e["bid_price"])
-
-    if len(prices) == 0:
-        return 0
-    return round(sum(prices) / len(prices), 2)
-
-
-def missing_values(events):
-    all_keys = ["timestamp", "device_id", "publisher", "country", "city",
-                "ad_id", "campaign_id", "event_type", "bid_price", "os"]
-
-    missing = {}
-    for key in all_keys:
-        count = 0
-        for e in events:
-            if e.get(key) is None:
-                count += 1
-        if count > 0:
-            missing[key] = count
-    return missing
-
 
 def get_summary(events):
     top_country = top_countries(events, 1)
@@ -142,3 +86,56 @@ if __name__ == "__main__":
     print("Average bid price:", average_bid_price(events))
     print("Missing values:", missing_values(events))
     print("Summary:", get_summary(events))
+
+
+
+
+
+
+
+
+
+
+
+
+#extra
+def os_split(events):
+    os_list = []
+    for e in events:
+        os_list.append(e["os"])
+    counter = Counter(os_list)
+    total = len(os_list)
+
+    result = {}
+    for os_name, count in counter.items():
+        percent = round(count / total * 100, 2)
+        result[os_name] = {"count": count, "percent": percent}
+    return result
+
+#extra
+def average_bid_price(events):
+    prices = []
+    for e in events:
+        if e.get("bid_price") is not None:
+            prices.append(e["bid_price"])
+
+    if len(prices) == 0:
+        return 0
+    return round(sum(prices) / len(prices), 2)
+
+#extra
+def missing_values(events):
+    all_keys = ["timestamp", "device_id", "publisher", "country", "city",
+                "ad_id", "campaign_id", "event_type", "bid_price", "os"]
+
+    missing = {}
+    for key in all_keys:
+        count = 0
+        for e in events:
+            if e.get(key) is None:
+                count += 1
+        if count > 0:
+            missing[key] = count
+    return missing
+
+

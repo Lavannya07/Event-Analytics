@@ -5,10 +5,11 @@ import processing
 
 s3 = boto3.client("s3")
 bucket_name = "257288818923-engg-internship"
-key = "sample_data.json"
+key = "data.json"
 
 response = s3.get_object(Bucket=bucket_name, Key=key)
-data = json.load(response["Body"])
+file_content = response["Body"].read().decode('utf-8')
+data = json.loads(file_content) # Use json.loads (load string) instead of json.load
 
 app = FastAPI()
 
@@ -32,17 +33,17 @@ def country(code: str):
 
 
 @app.get("/campaigns/top")
-def campaigns_top(n: int = 10):
+def campaigns_top(n: int):
     return processing.top_campaigns(data, n)
 
-
+#extra
 @app.get("/countries/top")
-def countries_top(n: int = 10):
+def countries_top(n: int ):
     return processing.top_countries(data, n)
 
-
+#extra
 @app.get("/cities/top")
-def cities_top(n: int = 10):
+def cities_top(n: int ):
     return processing.top_cities(data, n)
 
 
@@ -56,21 +57,22 @@ def hourly():
     return processing.hourly_distribution(data)
 
 
+@app.get("/summary")
+def summary():
+    return processing.get_summary(data)
+
+
+#extra
 @app.get("/os-split")
 def os_split():
     return processing.os_split(data)
 
-
+#extra
 @app.get("/bid-price/average")
 def bid_price_average():
     return {"average_bid_price": processing.average_bid_price(data)}
 
-
+#extra
 @app.get("/data-quality/missing")
 def data_quality_missing():
     return processing.missing_values(data)
-
-
-@app.get("/summary")
-def summary():
-    return processing.get_summary(data)
