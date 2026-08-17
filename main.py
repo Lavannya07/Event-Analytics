@@ -7,14 +7,14 @@ s3 = boto3.client("s3")
 bucket_name = "257288818923-engg-internship"
 key = "data.json"
 
-response = s3.get_object(Bucket=bucket_name, Key=key)
-file_content = response["Body"].read().decode('utf-8')
-data = json.loads(file_content) # Use json.loads (load string) instead of json.load
-
 app = FastAPI()
 
+response = s3.get_object(Bucket=bucket_name, Key=key)
+file_content = response["Body"].read().decode("utf-8")
+data = json.loads(file_content)
 
-@app.get("/events/count")
+
+@app.get("/events/count") #decorator
 def events_count():
     return {"count": processing.count_events(data)}
 
@@ -32,18 +32,30 @@ def country(code: str):
     return {"country": code, "events": count}
 
 
-@app.get("/campaigns/top")
+@app.get("/campaigns/top/{n}")
 def campaigns_top(n: int):
+    if n <= 0:
+        raise HTTPException(
+            status_code=400, detail="Number must be greater than 0"
+        )
     return processing.top_campaigns(data, n)
 
-#extra
-@app.get("/countries/top")
-def countries_top(n: int ):
+
+@app.get("/countries/top/{n}")
+def countries_top(n: int):
+    if n <= 0:
+        raise HTTPException(
+            status_code=400, detail="Number must be greater than 0"
+        )
     return processing.top_countries(data, n)
 
-#extra
-@app.get("/cities/top")
-def cities_top(n: int ):
+
+@app.get("/cities/top/{n}")
+def cities_top(n: int):
+    if n <= 0:
+        raise HTTPException(
+            status_code=400, detail="Number must be greater than 0"
+        )
     return processing.top_cities(data, n)
 
 
@@ -56,23 +68,26 @@ def devices_unique():
 def hourly():
     return processing.hourly_distribution(data)
 
+@app.get("/daily")
+def daily():
+    return processing.daily_distribution(data)
 
-@app.get("/summary")
-def summary():
-    return processing.get_summary(data)
 
-
-#extra
 @app.get("/os-split")
 def os_split():
     return processing.os_split(data)
 
-#extra
+
 @app.get("/bid-price/average")
 def bid_price_average():
     return {"average_bid_price": processing.average_bid_price(data)}
 
-#extra
+
 @app.get("/data-quality/missing")
 def data_quality_missing():
     return processing.missing_values(data)
+
+
+@app.get("/summary")
+def summary():
+    return processing.get_summary(data)
