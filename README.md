@@ -33,23 +33,24 @@ This service simulates an AdTech data engineering platform pipeline:
 
 ```bash
 # Clone the repository
-git clone [https://github.com/your-username/event-analytics-api.git](https://github.com/your-username/event-analytics-api.git)
+git clone [https://github.com/your-username/event-analytics-api.git]
 cd event-analytics-api
 
 # Create & activate virtual environment
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install uvicorn fastapi boto3
 
+# Start the FastAPI server
+uvicorn main:app --reload
+
+# If FastAPI server already running then kill it
+lsof -i:[Portnumber]  # Enter the port number in the URL
+kill -9 [PID]  # Enter the PID value returned
+ 
 # Configure AWS environment variables
 export AWS_ACCESS_KEY_ID="your_access_key"
 export AWS_SECRET_ACCESS_KEY="your_secret_key"
 export S3_BUCKET_NAME="your_bucket_name"
-
-# Start the FastAPI server
-uvicorn app.main:app --reload
-=======
-# checking...
->>>>>>> cd97e812a927aabf7a866e54d71f455fa48ada1f
